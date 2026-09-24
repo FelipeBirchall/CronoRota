@@ -34,6 +34,8 @@ Abre em `http://localhost:5173`.
 8. Como administrador, a aba "Auditoria" mostra quem alterou o quê e quando
    (e as exportações feitas). O gerente vê as alterações de um roteiro no
    fim da tela de detalhe dele.
+9. No detalhe do roteiro, "Ajustar" corrige a chegada/saída de um ponto
+   (UC07-A3) - a justificativa é obrigatória e aparece no histórico.
 
 Pra testar de verdade a experiência mobile, abre essa URL do motorista no
 DevTools do navegador com o modo de emulação de celular ligado (F12 →

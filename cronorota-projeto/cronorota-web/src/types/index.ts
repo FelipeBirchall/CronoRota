@@ -149,6 +149,7 @@ export interface Alteracao {
   entidadeNome: string;
   registroId: number;
   operacao: 'INCLUSAO' | 'ALTERACAO' | 'REMOCAO';
+  justificativa: string | null;
   campos: { campo: string; anterior: string | null; novo: string | null }[];
 }
 

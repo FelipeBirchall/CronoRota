@@ -113,7 +113,8 @@ public class AuditoriaService {
                 continue;
             }
             alteracoes.add(new AlteracaoResponse(revisao.getId(), revisao.getInstante(), revisao.getLogin(),
-                    revisao.getPerfil(), descritor.chave(), descritor.nome(), registroId, operacao(tipo), campos));
+                    revisao.getPerfil(), descritor.chave(), descritor.nome(), registroId, operacao(tipo),
+                    revisao.getJustificativa(), campos));
         }
         return alteracoes;
     }

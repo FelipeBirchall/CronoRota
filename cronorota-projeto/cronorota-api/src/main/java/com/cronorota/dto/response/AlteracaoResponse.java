@@ -8,7 +8,8 @@ import java.util.List;
  * registro e, campo a campo, o valor anterior e o novo - o RegistroAuditoria
  * do modelo conceitual (seção 13).
  *
- * @param operacao INCLUSAO, ALTERACAO ou REMOCAO
+ * @param operacao      INCLUSAO, ALTERACAO ou REMOCAO
+ * @param justificativa motivo informado, quando a operação exige um (UC07-A3)
  */
 public record AlteracaoResponse(
         Long revisao,
@@ -19,6 +20,7 @@ public record AlteracaoResponse(
         String entidadeNome,
         Long registroId,
         String operacao,
+        String justificativa,
         List<Campo> campos
 ) {
     public record Campo(String campo, String anterior, String novo) {

@@ -78,6 +78,10 @@ autor da revisão e da comparação de versões da auditoria (`AuditoriaTest`).
   fórmula) e PDF em A4 paisagem (OpenPDF). Acima de 5.000 paradas pede para
   reduzir o período (E1). Horários sempre em America/Sao_Paulo. Cada
   exportação fica registrada na auditoria (passo 5)
+- UC07-A3 (`PUT /api/pontos/{id}/horarios`, gerente/admin): ajuste manual
+  de chegada/saída com justificativa obrigatória. Refaz o tempo do ponto e
+  os totais do roteiro (UC08-A2) e grava a justificativa na mesma revisão
+  de auditoria que registra o horário anterior e o novo
 - RNF05 (auditoria) com Hibernate Envers: toda inclusão, alteração ou
   remoção de ponto, roteiro, parâmetro, pedido, usuário, veículo e endereço
   gera uma versão em `<tabela>_aud`, ligada a uma `revisao` com o usuário
@@ -92,7 +96,7 @@ autor da revisão e da comparação de versões da auditoria (`AuditoriaTest`).
 - Cache do dashboard em Redis (RNF03 - por ora a agregação em memória
   responde em milissegundos no volume do piloto)
 - UC14-A1/A2 (exportar os gráficos do dashboard em PDF; enviar por e-mail)
-- UC07-E2 (alerta de chegada fora da sequência) e A3 (ajuste manual com justificativa)
+- UC07-E2 (alerta de chegada fora da sequência)
 - Geocodificação e coordenadas obrigatórias (RN11)
 - Auditoria (RNF05, a entidade `RegistroAuditoria` do documento) - ficaria
   bem resolvida com Hibernate Envers, como a seção 25.1 do documento sugere
