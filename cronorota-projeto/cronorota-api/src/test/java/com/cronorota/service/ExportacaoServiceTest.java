@@ -1,5 +1,7 @@
 package com.cronorota.service;
 
+import com.cronorota.auditoria.RegistroExportacao;
+import com.cronorota.auditoria.RegistroExportacaoRepository;
 import com.cronorota.dto.response.HistoricoResponse;
 import com.cronorota.exception.RegraDeNegocioException;
 import com.cronorota.model.Motorista;
@@ -7,6 +9,7 @@ import com.cronorota.relatorio.FormatoRelatorio;
 import com.cronorota.security.UsuarioAutenticado;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
@@ -23,6 +26,8 @@ import static com.cronorota.service.Fixtures.as;
 import static com.cronorota.service.Fixtures.logado;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,11 +39,12 @@ class ExportacaoServiceTest {
 
     @Mock HistoricoService historicoService;
     @Mock MotoristaService motoristaService;
+    @Mock RegistroExportacaoRepository registroExportacaoRepository;
 
     private final UsuarioAutenticado gerente = logado("GERENTE", 1L);
 
     private ExportacaoService service() {
-        return new ExportacaoService(historicoService, motoristaService, RELOGIO);
+        return new ExportacaoService(historicoService, motoristaService, registroExportacaoRepository, RELOGIO);
     }
 
     private void historicoCom(List<HistoricoResponse.Linha> linhas) {
@@ -61,6 +67,30 @@ class ExportacaoServiceTest {
         assertThat(arquivo.contentType()).startsWith("text/csv");
         String csv = new String(arquivo.conteudo(), StandardCharsets.UTF_8);
         assertThat(csv).contains("Filtro;Toda a equipe").contains("Gerado em;24/09/2026 18:30");
+    }
+
+    @Test
+    void registraAExportacaoNaAuditoria_UC14passo5() {
+        historicoCom(List.of(linha(2, "Rua A", 15), linha(3, "Rua B", 20)));
+
+        service().exportar(gerente, INICIO, FIM, null, FormatoRelatorio.PDF, false);
+
+        ArgumentCaptor<RegistroExportacao> registro = ArgumentCaptor.forClass(RegistroExportacao.class);
+        verify(registroExportacaoRepository).save(registro.capture());
+        assertThat(registro.getValue().getLogin()).isEqualTo(gerente.login());
+        assertThat(registro.getValue().getFormato()).isEqualTo("PDF");
+        assertThat(registro.getValue().getQuantidadeLinhas()).isEqualTo(2);
+        assertThat(registro.getValue().getInstante().toInstant()).isEqualTo(RELOGIO.instant());
+    }
+
+    @Test
+    void exportacaoRecusadaNaoEhRegistrada() {
+        when(historicoService.consultar(gerente, INICIO, FIM, null))
+                .thenThrow(new RegraDeNegocioException("Período inválido"));
+
+        assertThatThrownBy(() -> service().exportar(gerente, INICIO, FIM, null, FormatoRelatorio.CSV, false))
+                .isInstanceOf(RegraDeNegocioException.class);
+        verifyNoInteractions(registroExportacaoRepository);
     }
 
     @Test

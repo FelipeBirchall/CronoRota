@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import org.hibernate.envers.Audited;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.List;
 // entrariam em recursão infinita (StackOverflowError) ao percorrê-la. O mesmo
 // vale para Ponto e Pedido. Entidade JPA fica com a igualdade por identidade.
 @Entity
+@Audited
 @Table(name = "roteiro")
 @Getter
 @Setter

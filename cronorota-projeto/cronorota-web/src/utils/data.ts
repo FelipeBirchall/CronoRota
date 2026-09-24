@@ -68,6 +68,12 @@ export function formatarHora(instante: string | null): string {
   return new Date(instante).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: FUSO_OPERACAO });
 }
 
+export function formatarDataHora(instante: string): string {
+  return new Date(instante).toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: FUSO_OPERACAO,
+  });
+}
+
 // 161 -> "2h 41min"; 45 -> "45min"
 export function formatarMinutos(min: number | null): string {
   if (min === null) return '—';

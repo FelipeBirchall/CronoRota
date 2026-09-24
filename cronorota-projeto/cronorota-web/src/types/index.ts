@@ -138,3 +138,29 @@ export interface Dashboard {
     mediaPorRoteiroMinutos: number;
   }[];
 }
+
+// RNF05 - GET /auditoria/alteracoes e /roteiros/:id/alteracoes
+export interface Alteracao {
+  revisao: number;
+  instante: string;
+  login: string;
+  perfil: string;
+  entidade: string;
+  entidadeNome: string;
+  registroId: number;
+  operacao: 'INCLUSAO' | 'ALTERACAO' | 'REMOCAO';
+  campos: { campo: string; anterior: string | null; novo: string | null }[];
+}
+
+// UC14 passo 5 - GET /auditoria/exportacoes
+export interface RegistroExportacao {
+  id: number;
+  instante: string;
+  login: string;
+  perfil: string;
+  formato: string;
+  periodoInicio: string;
+  periodoFim: string;
+  motoristaId: number | null;
+  quantidadeLinhas: number;
+}

@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 // Administrador: Gerentes e Parâmetros - configuração, não operação do dia
@@ -7,10 +7,13 @@ import { useAuth } from '../auth/AuthContext';
 const links = [
   { to: '/admin/gerentes', label: 'Gerentes' },
   { to: '/admin/parametros', label: 'Parâmetros' },
+  { to: '/admin/auditoria', label: 'Auditoria' },
 ];
 
 export function LayoutAdmin() {
   const { sessao, logout } = useAuth();
+  // A trilha de auditoria precisa de largura; os formulários, não.
+  const largo = useLocation().pathname.startsWith('/admin/auditoria');
 
   return (
     <div className="min-h-screen flex">
@@ -37,7 +40,7 @@ export function LayoutAdmin() {
           <button onClick={logout} className="text-xs text-white/80 hover:text-white">Sair</button>
         </div>
       </aside>
-      <main className="flex-1 p-8 max-w-3xl">
+      <main className={`flex-1 min-w-0 p-8 ${largo ? 'max-w-6xl' : 'max-w-3xl'}`}>
         <Outlet />
       </main>
     </div>
