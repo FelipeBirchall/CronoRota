@@ -1,0 +1,73 @@
+// Estes tipos espelham, campo a campo, os DTOs de response do back-end
+// (com.cronorota.dto.response) - é o "contrato" entre front e back. Se um
+// campo mudar de nome lá no Java, precisa mudar aqui também (é justamente
+// o tipo de coisa que o springdoc-openapi, mencionado no documento, ajudaria
+// a manter sincronizado automaticamente numa próxima etapa).
+
+export interface Gerente {
+  id: number;
+  nome: string;
+  email: string;
+}
+
+export interface Endereco {
+  id: number;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+}
+
+export interface Pedido {
+  id: number;
+  codigo: string;
+  destinatario: string;
+  endereco: Endereco;
+  dataPrevista: string;
+  situacao: 'PENDENTE' | 'EM_ROTEIRO' | 'ENTREGUE' | 'CANCELADO';
+}
+
+export interface Motorista {
+  id: number;
+  nome: string;
+  telefone: string;
+  email: string;
+  documento: string;
+  placaVeiculo: string;
+  gerenteId: number;
+  ativo: boolean;
+}
+
+export interface Ponto {
+  id: number;
+  ordem: number;
+  endereco: string;
+  dataHoraChegada: string | null;
+  dataHoraSaida: string | null;
+  tempoParadoMinutos: number | null;
+}
+
+export interface Roteiro {
+  id: number;
+  data: string;
+  motorista: string;
+  tempoTotalParadoMinutos: number | null;
+  percentualJornada: number | null;
+  custoEstimado: number | null;
+  pontos: Ponto[];
+}
+
+export interface Parametro {
+  id: number;
+  valorCombustivel: number;
+  jornadaPadraoMinutos: number;
+  dataInicioVigencia: string;
+  dataFimVigencia: string | null;
+}
+
+export interface ErroApi {
+  timestamp: string;
+  status: number;
+  mensagem: string;
+}

@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: cronorota-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: cronorota-api
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres # nome do service acima - o Docker Compose resolve
+                         # isso como um hostname dentro da rede interna,
+                         # sem precisar saber IP nenhum
+      DB_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy # só sobe a API depois que o Postgres
+                                    # responder o healthcheck, evita erro de
+                                    # conexão na inicialização
+
+volumes:
+  dados_postgres:

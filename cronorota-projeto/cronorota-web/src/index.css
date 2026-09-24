@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #F7F6F3;
+  color: #1a1a1a;
+}
+
+/* Números (tempos, valores em R$) usam variante tabular - alinha dígito com
+   dígito em colunas de tabela, em vez da largura proporcional default. */
+.num {
+  font-variant-numeric: tabular-nums;
+}

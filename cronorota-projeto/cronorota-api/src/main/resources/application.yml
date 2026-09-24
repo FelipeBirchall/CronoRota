@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: cronorota-api
+
+  # Credenciais vêm de variáveis de ambiente (definidas no docker-compose.yml / .env),
+  # nunca hardcoded aqui - é assim que RNF09 (parâmetros sem alterar código) começa a valer
+  # já na própria configuração de infraestrutura.
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:cronorota}
+    username: ${POSTGRES_USER:cronorota}
+    password: ${POSTGRES_PASSWORD:cronorota}
+
+  jpa:
+    hibernate:
+      # 'validate' porque o Flyway é quem manda no schema (migrations versionadas).
+      # O Hibernate nunca deve criar/alterar tabela sozinho em nenhum ambiente real.
+      ddl-auto: validate
+    # Religado (true): os relacionamentos LAZY das entidades (Motorista.veiculo,
+    # Pedido.enderecoEntrega, Roteiro.pontos, etc.) só são carregados quando o
+    # Controller de fato acessa esses campos pra montar o DTO de resposta - e
+    # isso acontece DEPOIS que o Service termina. Com open-in-view: false, a
+    # conexão já tinha fechado nesse ponto, e o acesso lançava
+    # LazyInitializationException (é o que estava quebrando /motoristas,
+    # /pedidos/pendentes e /roteiros/{id}). A alternativa "mais correta"
+    # seria fazer a conversão pra DTO dentro do próprio método @Transactional
+    # do Service, não no Controller - fica como próximo refinamento.
+    open-in-view: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+cronorota:
+  jwt:
+    # Precisa ter pelo menos 32 caracteres (256 bits) para o algoritmo HS256 -
+    # o JwtService falha a inicializar se for menor. Em qualquer ambiente
+    # real, isso viria de uma variável de ambiente própria, nunca commitado
+    # em texto claro no repositório - deixado direto aqui só por ser um
+    # valor de desenvolvimento/teste local.
+    secret: ${JWT_SECRET:cronorota-chave-secreta-de-desenvolvimento-trocar-em-producao}
+    expiracao-horas: 12
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.cronorota: DEBUG
