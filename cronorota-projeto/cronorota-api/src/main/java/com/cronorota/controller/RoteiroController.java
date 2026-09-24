@@ -1,6 +1,8 @@
 package com.cronorota.controller;
 
+import com.cronorota.auditoria.AuditoriaService;
 import com.cronorota.dto.request.MontarRoteiroRequest;
+import com.cronorota.dto.response.AlteracaoResponse;
 import com.cronorota.dto.response.RoteiroResponse;
 import com.cronorota.model.Roteiro;
 import com.cronorota.service.RoteiroService;
@@ -24,6 +26,7 @@ import java.util.List;
 public class RoteiroController {
 
     private final RoteiroService roteiroService;
+    private final AuditoriaService auditoriaService;
 
     @PostMapping
     public ResponseEntity<RoteiroResponse> montar(@Valid @RequestBody MontarRoteiroRequest request,
@@ -40,6 +43,13 @@ public class RoteiroController {
                                                        @AuthenticationPrincipal UsuarioAutenticado usuario) {
         Roteiro roteiro = roteiroService.buscarPorId(id, usuario);
         return ResponseEntity.ok(RoteiroResponse.fromEntity(roteiro));
+    }
+
+    // RNF05 - alterações do roteiro e dos seus pontos, para a tela de detalhe.
+    @GetMapping("/{id}/alteracoes")
+    public List<AlteracaoResponse> alteracoes(@PathVariable Long id,
+                                              @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return auditoriaService.alteracoesDoRoteiro(id, usuario);
     }
 
     // Usado pela tela "Meus roteiros" do motorista logado (RN13).

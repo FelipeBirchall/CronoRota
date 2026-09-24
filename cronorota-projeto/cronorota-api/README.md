@@ -26,6 +26,9 @@ com.cronorota
 ├── dto/          formato de entrada (request) e saída (response) da API,
 │                 separado das entidades
 ├── exception/    exceções de negócio + tradutor global pra respostas HTTP
+├── auditoria/    trilha de auditoria (Envers): revisão com autor, leitura
+│                 da trilha, registro de exportações
+├── relatorio/    geração do relatório do período em CSV e PDF
 ├── security/     JWT (geração/validação do token) e o usuário autenticado
 └── config/       configuração do Spring Security (rotas por perfil, CORS, BCrypt)
 ```
@@ -41,7 +44,8 @@ montagem/registro: `TempoParadoService` e `CustoService` usam os exemplos da
 seção 14 do documento (roteiros A, B e C; R$ 24,00 de custo), e os demais
 cobrem RN05, RN12, RN13, RN14, os fluxos de exceção do UC07 e a agregação
 do histórico e do dashboard (`AgregacaoTest`, também com os roteiros A/B/C)
-e a exportação (`RelatorioTest` lê o CSV e o texto do PDF gerados).
+e a exportação (`RelatorioTest` lê o CSV e o texto do PDF gerados), além do
+autor da revisão e da comparação de versões da auditoria (`AuditoriaTest`).
 
 ## O que este código cobre (e o que não cobre ainda)
 
@@ -72,14 +76,22 @@ e a exportação (`RelatorioTest` lê o CSV e o texto do PDF gerados).
   com período, filtro e data/hora de geração no cabeçalho. CSV pronto para o
   Excel em português (";", vírgula decimal, UTF-8 com BOM, proteção contra
   fórmula) e PDF em A4 paisagem (OpenPDF). Acima de 5.000 paradas pede para
-  reduzir o período (E1). Horários sempre em America/Sao_Paulo
+  reduzir o período (E1). Horários sempre em America/Sao_Paulo. Cada
+  exportação fica registrada na auditoria (passo 5)
+- RNF05 (auditoria) com Hibernate Envers: toda inclusão, alteração ou
+  remoção de ponto, roteiro, parâmetro, pedido, usuário, veículo e endereço
+  gera uma versão em `<tabela>_aud`, ligada a uma `revisao` com o usuário
+  (lido do token) e a data/hora - sem nenhum service precisar lembrar disso.
+  A trilha é somente para inclusão (o banco recusa UPDATE/DELETE, seção
+  28.2) e o hash da senha não é versionado. Consulta:
+  `GET /api/auditoria/alteracoes` e `/api/auditoria/exportacoes` (admin) e
+  `GET /api/roteiros/{id}/alteracoes` (quem pode ver o roteiro, RN13)
 
 **Não implementado nesta etapa** (próximos incrementos):
 - RN08 (bloqueio após 3 tentativas de login) e recuperação de senha
 - Cache do dashboard em Redis (RNF03 - por ora a agregação em memória
   responde em milissegundos no volume do piloto)
-- UC14-A1/A2 (exportar os gráficos do dashboard em PDF; enviar por e-mail).
-  O registro da exportação (UC14 passo 5) vai para o log até a auditoria existir
+- UC14-A1/A2 (exportar os gráficos do dashboard em PDF; enviar por e-mail)
 - UC07-E2 (alerta de chegada fora da sequência) e A3 (ajuste manual com justificativa)
 - Geocodificação e coordenadas obrigatórias (RN11)
 - Auditoria (RNF05, a entidade `RegistroAuditoria` do documento) - ficaria

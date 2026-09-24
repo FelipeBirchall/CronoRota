@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import org.hibernate.envers.Audited;
 import java.time.OffsetDateTime;
 
 /**
@@ -25,6 +26,7 @@ import java.time.OffsetDateTime;
  * justifica a escolha do PostgreSQL.
  */
 @Entity
+@Audited
 @Table(name = "ponto")
 @Getter
 @Setter

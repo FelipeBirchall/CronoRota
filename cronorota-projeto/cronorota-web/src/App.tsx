@@ -15,6 +15,7 @@ import { RoteiroDetalhePage } from './pages/RoteiroDetalhePage';
 import { RoteiroDoDiaPage } from './pages/RoteiroDoDiaPage';
 import { MeusRoteirosPage } from './pages/MeusRoteirosPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { AuditoriaPage } from './pages/AuditoriaPage';
 import { HistoricoMotoristaPage, HistoricoPage } from './pages/HistoricoPage';
 
 const destinoPorPerfil: Record<string, string> = {
@@ -44,6 +45,7 @@ export default function App() {
       <Route path="/admin" element={<RequireRole perfis={['ADMINISTRADOR']}><LayoutAdmin /></RequireRole>}>
         <Route path="gerentes" element={<CadastroGerentePage />} />
         <Route path="parametros" element={<CadastroParametroPage />} />
+        <Route path="auditoria" element={<AuditoriaPage />} />
       </Route>
 
       <Route path="/gerente" element={<RequireRole perfis={['GERENTE']}><LayoutGerente /></RequireRole>}>

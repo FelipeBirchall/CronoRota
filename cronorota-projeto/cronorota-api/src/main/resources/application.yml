@@ -28,6 +28,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+      # Auditoria (RNF05): tabelas "<entidade>_aud" + "revisao", criadas
+      # pela migração V3 (o Flyway continua mandando no schema). Nomes em
+      # minúsculas para casar com o padrão do PostgreSQL.
+      org.hibernate.envers:
+        audit_table_suffix: _aud
+        revision_field_name: rev
+        revision_type_field_name: revtype
 
   flyway:
     enabled: true

@@ -1,5 +1,7 @@
 package com.cronorota.service;
 
+import com.cronorota.auditoria.RegistroExportacao;
+import com.cronorota.auditoria.RegistroExportacaoRepository;
 import com.cronorota.dto.response.HistoricoResponse;
 import com.cronorota.exception.RegraDeNegocioException;
 import com.cronorota.relatorio.DadosRelatorio;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -35,12 +38,13 @@ public class ExportacaoService {
 
     private final HistoricoService historicoService;
     private final MotoristaService motoristaService;
+    private final RegistroExportacaoRepository registroExportacaoRepository;
     private final Clock clock;
 
     public record ArquivoExportado(String nomeArquivo, String contentType, byte[] conteudo) {
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ArquivoExportado exportar(UsuarioAutenticado usuario, LocalDate inicio, LocalDate fim, Long motoristaId,
                                      FormatoRelatorio formato, boolean ordenarPorMaiorTempo) {
         HistoricoResponse historico = historicoService.consultar(usuario, inicio, fim, motoristaId);
@@ -65,8 +69,18 @@ public class ExportacaoService {
             case PDF -> RelatorioPdf.gerar(dados);
         };
 
-        // UC14 passo 5 pede o registro da exportação na auditoria. A trilha
-        // de auditoria (RNF05) ainda não existe; até lá, fica no log.
+        // UC14 passo 5: registra a exportação na auditoria.
+        registroExportacaoRepository.save(RegistroExportacao.builder()
+                .instante(OffsetDateTime.now(clock))
+                .usuarioId(usuario.id())
+                .login(usuario.login())
+                .perfil(usuario.perfil())
+                .formato(formato.name())
+                .periodoInicio(inicio)
+                .periodoFim(fim)
+                .motoristaId(motoristaId)
+                .quantidadeLinhas(linhas.size())
+                .build());
         log.info("Exportação {} do histórico por {} ({}): {} a {}, motorista={}, {} paradas",
                 formato, usuario.login(), usuario.perfil(), inicio, fim, motoristaId, linhas.size());
 

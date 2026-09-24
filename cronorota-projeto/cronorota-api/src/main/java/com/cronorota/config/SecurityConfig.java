@@ -87,6 +87,9 @@ public class SecurityConfig {
                 // UC10: o dashboard é do gerente (e do administrador, que vê tudo).
                 // O histórico (UC09) fica aberto aos três perfis, filtrado no service.
                 .requestMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
+                // RNF05: a trilha completa é do administrador. As alterações de
+                // um roteiro (/api/roteiros/{id}/alteracoes) seguem a RN13 do roteiro.
+                .requestMatchers("/api/auditoria/**").hasAuthority("ROLE_ADMINISTRADOR")
 
                 // O resto (consultar roteiro, registrar chegada/saída) vale
                 // para qualquer perfil autenticado - quem pode ver QUAL

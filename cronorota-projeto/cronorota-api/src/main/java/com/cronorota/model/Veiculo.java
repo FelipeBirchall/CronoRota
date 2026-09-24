@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.envers.Audited;
 import java.math.BigDecimal;
 
 /**
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
  * interno (não só via requisição HTTP validada por @Valid).
  */
 @Entity
+@Audited
 @Table(name = "veiculo")
 @Data
 @NoArgsConstructor

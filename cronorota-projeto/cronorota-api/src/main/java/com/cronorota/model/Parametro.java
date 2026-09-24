@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.envers.Audited;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -22,6 +23,7 @@ import java.time.LocalDate;
  * nula) é que pode ser substituído por um novo registro.
  */
 @Entity
+@Audited
 @Table(name = "parametro")
 @Data
 @NoArgsConstructor

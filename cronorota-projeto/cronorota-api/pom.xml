@@ -40,6 +40,14 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Hibernate Envers: trilha de auditoria (RNF05, seção 25.1 do
+             documento) - grava uma versão de cada entidade auditada a cada
+             inclusão/alteração/remoção, com autor e data/hora na revisão. -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-envers</artifactId>
+        </dependency>
+
         <!-- Driver do PostgreSQL -->
         <dependency>
             <groupId>org.postgresql</groupId>

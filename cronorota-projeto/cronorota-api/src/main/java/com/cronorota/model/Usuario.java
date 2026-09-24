@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 /**
  * Classe abstrata com os dados comuns aos três perfis (seção 12.1 do documento).
@@ -35,6 +37,7 @@ import lombok.experimental.SuperBuilder;
  * hierarquia com @SuperBuilder.
  */
 @Entity
+@Audited
 @Table(name = "usuario")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
@@ -64,6 +67,9 @@ public abstract class Usuario {
 
     // Nunca armazenar senha em texto claro (RNF08). O hash é gerado no service,
     // nunca aqui na entidade - a entidade só guarda o resultado já hasheado.
+    // @NotAudited: o hash da senha não vai para a trilha de auditoria - não
+    // há por que guardar versões antigas dele (RNF08, LGPD - RNF06).
+    @NotAudited
     @Column(name = "senha_hash", nullable = false)
     private String senhaHash;
 

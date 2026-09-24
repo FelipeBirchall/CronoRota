@@ -31,6 +31,9 @@ Abre em `http://localhost:5173`.
    daquele recorte; no gráfico por período, abre o roteiro. O motorista tem
    o próprio histórico pelo link no topo de "Meus roteiros".
 7. No histórico, "Exportar CSV/PDF" baixa o mesmo conteúdo da tela (UC14).
+8. Como administrador, a aba "Auditoria" mostra quem alterou o quê e quando
+   (e as exportações feitas). O gerente vê as alterações de um roteiro no
+   fim da tela de detalhe dele.
 
 Pra testar de verdade a experiência mobile, abre essa URL do motorista no
 DevTools do navegador com o modo de emulação de celular ligado (F12 →
@@ -40,5 +43,6 @@ DevTools do navegador com o modo de emulação de celular ligado (F12 →
 
 Cobre as telas ligadas aos casos de uso já implementados no back-end: UC01
 (login), UC02, UC03, UC04, UC05, UC06, UC07/UC08, UC09 (histórico), UC10
-(dashboard), UC11/UC12 (parâmetros) e UC14 (exportação). Não inclui ainda
-o modo offline (RNF07) - fica pro próximo incremento.
+(dashboard), UC11/UC12 (parâmetros), UC14 (exportação) e a consulta da
+auditoria (RNF05). Não inclui ainda o modo offline (RNF07) - fica pro
+próximo incremento.

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
-import type { Roteiro } from '../types';
+import type { Alteracao, Roteiro } from '../types';
+import { ListaAlteracoes } from '../components/ListaAlteracoes';
 import { Card } from '../components/ui';
 import { formatarHora, formatarMinutos } from '../utils/data';
 
@@ -10,6 +11,14 @@ export function RoteiroDetalhePage() {
   const { id } = useParams();
   const [roteiro, setRoteiro] = useState<Roteiro | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [alteracoes, setAlteracoes] = useState<Alteracao[] | null>(null);
+  const [erroAlteracoes, setErroAlteracoes] = useState<string | null>(null);
+
+  // RNF05: a trilha só é buscada quando o gerente abre a seção.
+  function carregarAlteracoes() {
+    if (alteracoes || !id) return;
+    api.get<Alteracao[]>(`/roteiros/${id}/alteracoes`).then(setAlteracoes).catch((e) => setErroAlteracoes(e.message));
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -48,13 +57,15 @@ export function RoteiroDetalhePage() {
         <Card>
           <p className="text-xs text-grafite mb-1">% da jornada (8h)</p>
           <p className={`text-2xl font-semibold num ${alerta ? 'text-terracota' : 'text-verdeok'}`}>
-            {roteiro.percentualJornada !== null ? `${roteiro.percentualJornada}%` : '—'}
+            {roteiro.percentualJornada !== null ? `${roteiro.percentualJornada.toLocaleString('pt-BR')}%` : '—'}
           </p>
         </Card>
         <Card>
           <p className="text-xs text-grafite mb-1">Custo estimado</p>
           <p className="text-2xl font-semibold num">
-            {roteiro.custoEstimado !== null ? `R$ ${roteiro.custoEstimado.toFixed(2)}` : '—'}
+            {roteiro.custoEstimado !== null
+              ? roteiro.custoEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+              : '—'}
           </p>
         </Card>
       </div>
@@ -86,6 +97,17 @@ export function RoteiroDetalhePage() {
           </tbody>
         </table>
       </Card>
+
+      <details className="bg-white rounded-lg border border-neutral-200" onToggle={(e) => e.currentTarget.open && carregarAlteracoes()}>
+        <summary className="px-6 py-4 text-sm font-medium text-grafite cursor-pointer select-none">
+          Histórico de alterações do roteiro e dos pontos
+        </summary>
+        <div className="px-6 pb-4">
+          {erroAlteracoes && <p className="text-sm text-terracota">{erroAlteracoes}</p>}
+          {!alteracoes && !erroAlteracoes && <p className="text-sm text-grafite">Carregando...</p>}
+          {alteracoes && <ListaAlteracoes alteracoes={alteracoes} />}
+        </div>
+      </details>
     </div>
   );
 }
