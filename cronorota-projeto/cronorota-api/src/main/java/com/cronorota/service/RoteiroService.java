@@ -151,6 +151,30 @@ public class RoteiroService {
         return roteiroRepository.findByMotorista_IdOrderByDataDesc(motoristaId);
     }
 
+    /**
+     * Roteiros ativos do período que o usuário pode ver (RN13), usados pelo
+     * histórico (UC09) e pelo dashboard (UC10). O filtro de motorista é
+     * opcional; se vier, precisa ser um motorista que o usuário já veria.
+     */
+    public List<Roteiro> buscarNoPeriodo(UsuarioAutenticado usuario, LocalDate inicio, LocalDate fim, Long motoristaId) {
+        // UC09-E1: data inicial posterior à final.
+        if (inicio == null || fim == null || inicio.isAfter(fim)) {
+            throw new RegraDeNegocioException("Período inválido: a data inicial deve ser anterior ou igual à final");
+        }
+
+        Long gerenteId = null;
+        if (usuario.isMotorista()) {
+            if (motoristaId != null && !motoristaId.equals(usuario.id())) {
+                throw new AcessoNegadoException("Você só pode consultar os seus próprios roteiros");
+            }
+            motoristaId = usuario.id();
+        } else if (usuario.isGerente()) {
+            gerenteId = usuario.id();
+        }
+
+        return roteiroRepository.buscarNoPeriodo(inicio, fim, gerenteId, motoristaId);
+    }
+
     public Roteiro buscarPorId(Long id, UsuarioAutenticado usuario) {
         Roteiro roteiro = roteiroRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Roteiro não encontrado: " + id));

@@ -13,7 +13,7 @@ interface LoginResponse {
 
 const destinoPorPerfil: Record<Perfil, string> = {
   ADMINISTRADOR: '/admin/gerentes',
-  GERENTE: '/gerente/motoristas',
+  GERENTE: '/gerente/dashboard', // UC01 passo 5: o gerente cai no dashboard
   MOTORISTA: '/motorista/meus-roteiros',
 };
 

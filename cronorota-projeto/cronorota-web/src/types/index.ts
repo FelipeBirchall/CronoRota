@@ -71,3 +71,70 @@ export interface ErroApi {
   status: number;
   mensagem: string;
 }
+
+// UC09 - GET /historico
+export interface LinhaHistorico {
+  roteiroId: number;
+  data: string;
+  motoristaId: number;
+  motorista: string;
+  ordem: number;
+  endereco: string;
+  dataHoraChegada: string;
+  dataHoraSaida: string;
+  tempoParadoMinutos: number;
+}
+
+export interface Historico {
+  inicio: string;
+  fim: string;
+  quantidadeRoteiros: number;
+  quantidadePontos: number;
+  tempoTotalParadoMinutos: number;
+  mediaPorRoteiroMinutos: number;
+  mediaPorPontoMinutos: number;
+  pontos: LinhaHistorico[];
+}
+
+// UC10 - GET /dashboard
+export interface TotalNoIntervalo {
+  chave: string;
+  tempoParadoMinutos: number;
+  quantidadeRoteiros: number;
+}
+
+export interface Dashboard {
+  inicio: string;
+  fim: string;
+  indicadores: {
+    quantidadeRoteiros: number;
+    tempoTotalParadoMinutos: number;
+    percentualJornadaMedio: number | null;
+    pontoMaisCritico: {
+      roteiroId: number;
+      data: string;
+      motorista: string;
+      endereco: string;
+      tempoParadoMinutos: number;
+    } | null;
+    custoEstimadoTotal: number | null;
+    custoCompleto: boolean;
+  };
+  porDia: TotalNoIntervalo[];
+  porMes: TotalNoIntervalo[];
+  porRoteiro: {
+    roteiroId: number;
+    data: string;
+    motorista: string;
+    tempoParadoMinutos: number;
+    percentualJornada: number | null;
+  }[];
+  rankingEnderecos: { enderecoId: number; endereco: string; tempoParadoMinutos: number; paradas: number }[];
+  porMotorista: {
+    motoristaId: number;
+    motorista: string;
+    quantidadeRoteiros: number;
+    tempoParadoMinutos: number;
+    mediaPorRoteiroMinutos: number;
+  }[];
+}

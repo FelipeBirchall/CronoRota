@@ -1,6 +1,6 @@
 # CronoRota Web
 
-Front-end do MVP. React 18 + TypeScript + Vite + Tailwind CSS.
+Front-end do MVP. React 18 + TypeScript + Vite + Tailwind CSS + Recharts (gráficos do dashboard).
 
 ## Como rodar
 
@@ -26,6 +26,10 @@ Abre em `http://localhost:5173`.
 5. Entrar como o motorista (ou, como gerente, usar "Ver como o motorista
    veria"): na partida registra-se só a saída; nos demais pontos, chegada e
    saída, e o tempo parado é calculado a cada saída (RN01-RN04)
+6. Como gerente, abrir o Dashboard (tela inicial dele) e o Histórico. No
+   dashboard, clicar numa barra do gráfico por dia/mês abre o histórico
+   daquele recorte; no gráfico por período, abre o roteiro. O motorista tem
+   o próprio histórico pelo link no topo de "Meus roteiros".
 
 Pra testar de verdade a experiência mobile, abre essa URL do motorista no
 DevTools do navegador com o modo de emulação de celular ligado (F12 →
@@ -34,7 +38,6 @@ DevTools do navegador com o modo de emulação de celular ligado (F12 →
 ## O que esta interface cobre (e o que não cobre ainda)
 
 Cobre as telas ligadas aos casos de uso já implementados no back-end: UC01
-(login), UC02, UC03, UC04, UC05, UC06, UC07/UC08 e UC11/UC12 (parâmetros).
-Não inclui ainda: histórico (UC09), dashboard com gráficos (UC10),
-exportação de relatório (UC14) e modo offline (RNF07) - ficam pros próximos
-incrementos, junto com o back-end correspondente.
+(login), UC02, UC03, UC04, UC05, UC06, UC07/UC08, UC09 (histórico), UC10
+(dashboard) e UC11/UC12 (parâmetros). Não inclui ainda: exportação de
+relatório (UC14) e modo offline (RNF07) - ficam pros próximos incrementos.

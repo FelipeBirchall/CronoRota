@@ -23,7 +23,10 @@ export function MeusRoteirosPage() {
           <h1 className="text-lg font-semibold">Olá, {sessao?.nome}</h1>
           <p className="text-sm text-white/80">Seus roteiros</p>
         </div>
-        <button onClick={logout} className="text-xs text-white/70 hover:text-white">Sair</button>
+        <div className="flex items-center gap-4">
+          <Link to="/motorista/historico" className="text-xs text-white/90 hover:text-white">Histórico</Link>
+          <button onClick={logout} className="text-xs text-white/70 hover:text-white">Sair</button>
+        </div>
       </header>
 
       <div className="p-4 space-y-3">

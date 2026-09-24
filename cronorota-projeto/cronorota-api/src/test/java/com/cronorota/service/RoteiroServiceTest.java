@@ -28,10 +28,12 @@ import java.util.Optional;
 import static com.cronorota.service.Fixtures.DATA;
 import static com.cronorota.service.Fixtures.endereco;
 import static com.cronorota.service.Fixtures.gerente;
+import static com.cronorota.service.Fixtures.logado;
 import static com.cronorota.service.Fixtures.motorista;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,6 +139,27 @@ class RoteiroServiceTest {
         pedido(101L, endereco(2));
 
         assertThatThrownBy(() -> montar(List.of(100L, 101L))).isInstanceOf(RegraDeNegocioException.class);
+    }
+
+    @Test
+    void periodoInvertidoEhRecusado_UC09E1() {
+        assertThatThrownBy(() -> service.buscarNoPeriodo(logado("GERENTE", 1L), DATA, DATA.minusDays(1), null))
+                .isInstanceOf(RegraDeNegocioException.class);
+    }
+
+    @Test
+    void motoristaConsultaSoOsProprios_RN13() {
+        service.buscarNoPeriodo(logado("MOTORISTA", 10L), DATA, DATA, null);
+        verify(roteiroRepository).buscarNoPeriodo(DATA, DATA, null, 10L);
+
+        assertThatThrownBy(() -> service.buscarNoPeriodo(logado("MOTORISTA", 10L), DATA, DATA, 11L))
+                .isInstanceOf(AcessoNegadoException.class);
+    }
+
+    @Test
+    void gerenteConsultaSoAPropriaEquipe_RN13() {
+        service.buscarNoPeriodo(logado("GERENTE", 1L), DATA, DATA, 10L);
+        verify(roteiroRepository).buscarNoPeriodo(DATA, DATA, 1L, 10L);
     }
 
     private Roteiro montar(List<Long> pedidoIds) {

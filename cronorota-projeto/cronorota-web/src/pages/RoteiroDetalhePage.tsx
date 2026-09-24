@@ -3,13 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { Roteiro } from '../types';
 import { Card } from '../components/ui';
+import { formatarMinutos } from '../utils/data';
 
-function formatarMinutos(min: number | null): string {
-  if (min === null) return '—';
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return h > 0 ? `${h}h ${m}min` : `${m}min`;
-}
 
 export function RoteiroDetalhePage() {
   const { id } = useParams();

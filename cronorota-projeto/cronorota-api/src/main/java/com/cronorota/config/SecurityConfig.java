@@ -1,22 +1,27 @@
 package com.cronorota.config;
 
+import com.cronorota.dto.response.ErroResponse;
 import com.cronorota.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -32,6 +37,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -47,13 +53,21 @@ public class SecurityConfig {
             // nenhuma sessão de servidor é criada ou consultada.
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             // Sem token (ou token expirado) = 401; token válido mas perfil sem
-            // permissão = 403. Sem esta linha o Spring devolve 403 nos dois
-            // casos, e o front-end não teria como distinguir "sessão expirou,
-            // faça login de novo" de "você não pode ver isto".
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            // permissão = 403 - é assim que o front-end distingue "sessão
+            // expirou, faça login de novo" de "você não pode ver isto".
+            // A resposta é escrita aqui mesmo, no formato ErroResponse: o
+            // caminho padrão (sendError -> /error) passa de novo pela cadeia
+            // de segurança SEM o JwtAuthFilter, e o 403 virava 401.
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((req, res, e) -> escreverErro(res, HttpStatus.UNAUTHORIZED, "Sessão ausente ou expirada"))
+                    .accessDeniedHandler((req, res, e) -> escreverErro(res, HttpStatus.FORBIDDEN, "Seu perfil não tem permissão para esta operação")))
             .authorizeHttpRequests(auth -> auth
                 // Login sempre aberto - é a única forma de conseguir um token.
                 .requestMatchers("/api/auth/**").permitAll()
+                // Página de erro do Spring: sem isto, um 500 inesperado era
+                // reencaminhado para /error, barrado como anônimo e chegava
+                // ao front-end como 401 - deslogando o usuário por engano.
+                .requestMatchers("/error").permitAll()
                 // Ver o aviso de bootstrap no AdministradorController: isto
                 // fica aberto só em desenvolvimento.
                 .requestMatchers("/api/administradores").permitAll()
@@ -70,6 +84,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/motoristas/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
                 .requestMatchers("/api/pedidos/**", "/api/enderecos/**").hasAuthority("ROLE_GERENTE")
                 .requestMatchers(HttpMethod.GET, "/api/roteiros/meus").hasAuthority("ROLE_MOTORISTA")
+                // UC10: o dashboard é do gerente (e do administrador, que vê tudo).
+                // O histórico (UC09) fica aberto aos três perfis, filtrado no service.
+                .requestMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
 
                 // O resto (consultar roteiro, registrar chegada/saída) vale
                 // para qualquer perfil autenticado - quem pode ver QUAL
@@ -80,6 +97,13 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private void escreverErro(HttpServletResponse response, HttpStatus status, String mensagem) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        objectMapper.writeValue(response.getWriter(), ErroResponse.of(status.value(), mensagem));
     }
 
     @Bean

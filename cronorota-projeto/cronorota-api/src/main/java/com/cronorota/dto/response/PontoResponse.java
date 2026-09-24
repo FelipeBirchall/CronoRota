@@ -12,12 +12,10 @@ public record PontoResponse(
         Integer tempoParadoMinutos
 ) {
     public static PontoResponse fromEntity(Ponto ponto) {
-        var e = ponto.getEndereco();
-        String enderecoFormatado = e.getLogradouro() + ", " + e.getBairro() + " - " + e.getCidade() + "/" + e.getUf();
         return new PontoResponse(
                 ponto.getId(),
                 ponto.getOrdem(),
-                enderecoFormatado,
+                EnderecoResponse.formatado(ponto.getEndereco()),
                 ponto.getDataHoraChegada(),
                 ponto.getDataHoraSaida(),
                 ponto.getTempoParadoMinutos()

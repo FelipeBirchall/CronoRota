@@ -14,10 +14,12 @@ import { MontarRoteiroPage } from './pages/MontarRoteiroPage';
 import { RoteiroDetalhePage } from './pages/RoteiroDetalhePage';
 import { RoteiroDoDiaPage } from './pages/RoteiroDoDiaPage';
 import { MeusRoteirosPage } from './pages/MeusRoteirosPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { HistoricoMotoristaPage, HistoricoPage } from './pages/HistoricoPage';
 
 const destinoPorPerfil: Record<string, string> = {
   ADMINISTRADOR: '/admin/gerentes',
-  GERENTE: '/gerente/motoristas',
+  GERENTE: '/gerente/dashboard', // UC01 passo 5: o gerente cai no dashboard
   MOTORISTA: '/motorista/meus-roteiros',
 };
 
@@ -45,6 +47,8 @@ export default function App() {
       </Route>
 
       <Route path="/gerente" element={<RequireRole perfis={['GERENTE']}><LayoutGerente /></RequireRole>}>
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="historico" element={<HistoricoPage />} />
         <Route path="motoristas" element={<CadastroMotoristaPage />} />
         <Route path="enderecos" element={<CadastroEnderecoPage />} />
         <Route path="pedidos" element={<CadastroPedidoPage />} />
@@ -53,6 +57,7 @@ export default function App() {
       </Route>
 
       <Route path="/motorista/meus-roteiros" element={<RequireRole perfis={['MOTORISTA']}><MeusRoteirosPage /></RequireRole>} />
+      <Route path="/motorista/historico" element={<RequireRole perfis={['MOTORISTA']}><HistoricoMotoristaPage /></RequireRole>} />
       {/* Aberta pra MOTORISTA (uso real) e GERENTE (link "ver como o
           motorista veria" na tela de detalhe do roteiro). */}
       <Route path="/motorista/roteiro/:id" element={<RequireRole perfis={['MOTORISTA', 'GERENTE']}><RoteiroDoDiaPage /></RequireRole>} />

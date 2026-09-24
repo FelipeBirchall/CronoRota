@@ -39,7 +39,8 @@ mvn test
 Testes unitários (JUnit 5 + Mockito, sem banco) das regras de cálculo e de
 montagem/registro: `TempoParadoService` e `CustoService` usam os exemplos da
 seção 14 do documento (roteiros A, B e C; R$ 24,00 de custo), e os demais
-cobrem RN05, RN12, RN13, RN14 e os fluxos de exceção do UC07.
+cobrem RN05, RN12, RN13, RN14, os fluxos de exceção do UC07 e a agregação
+do histórico e do dashboard (`AgregacaoTest`, também com os roteiros A/B/C).
 
 ## O que este código cobre (e o que não cobre ainda)
 
@@ -57,10 +58,19 @@ cobrem RN05, RN12, RN13, RN14 e os fluxos de exceção do UC07.
   a RN04) e UC13 (custo - RN07)
 - UC11/UC12 (parâmetros) com RN14: nova vigência encerra a anterior, não
   aceita sobreposição e recalcula os roteiros alcançados
+- UC09 (`GET /api/historico?inicio=&fim=&motoristaId=`): paradas concluídas
+  do período com endereço e horários, mais os totalizadores (total, média
+  por roteiro, média por ponto), filtradas por perfil (RN13)
+- UC10 (`GET /api/dashboard?inicio=&fim=&motoristaId=`, gerente e admin):
+  indicadores (tempo total, % da jornada, ponto mais crítico, custo
+  estimado), totais por dia, por mês e por roteiro, ranking de endereços e
+  comparação entre motoristas - tudo calculado a partir do mesmo conjunto
+  de roteiros, carregado numa consulta só
 
 **Não implementado nesta etapa** (próximos incrementos):
 - RN08 (bloqueio após 3 tentativas de login) e recuperação de senha
-- UC09 (histórico), UC10 (dashboard), UC14 (exportação de relatório)
+- UC14 (exportação de relatório) e cache do dashboard em Redis (RNF03 -
+  por ora a agregação em memória responde em milissegundos no volume do piloto)
 - UC07-E2 (alerta de chegada fora da sequência) e A3 (ajuste manual com justificativa)
 - Geocodificação e coordenadas obrigatórias (RN11)
 - Auditoria (RNF05, a entidade `RegistroAuditoria` do documento) - ficaria

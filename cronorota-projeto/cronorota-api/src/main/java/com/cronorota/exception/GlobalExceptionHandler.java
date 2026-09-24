@@ -5,6 +5,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -49,6 +51,17 @@ public class GlobalExceptionHandler {
     // campo @NotBlank vazio, @DecimalMin violado) - pega a primeira mensagem
     // de erro pra devolver algo legível, em vez do objeto de erro verboso
     // padrão do Spring.
+    // Parâmetro de consulta ausente ou em formato errado (ex.: ?inicio=ontem
+    // no histórico) - mesmo formato de erro do resto da API, em vez do
+    // corpo padrão do Spring.
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErroResponse> handleParametroDeConsulta(Exception ex) {
+        String nome = ex instanceof MissingServletRequestParameterException m ? m.getParameterName()
+                : ((MethodArgumentTypeMismatchException) ex).getName();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErroResponse.of(400, "Parâmetro ausente ou inválido: " + nome));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResponse> handleValidacao(MethodArgumentNotValidException ex) {
         String mensagem = ex.getBindingResult().getFieldErrors().stream()
