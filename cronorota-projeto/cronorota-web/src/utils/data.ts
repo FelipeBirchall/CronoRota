@@ -68,6 +68,18 @@ export function formatarHora(instante: string | null): string {
   return new Date(instante).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: FUSO_OPERACAO });
 }
 
+// Instante -> valor de <input type="datetime-local"> ("2026-09-24T09:15") no
+// fuso da operação, para o gerente editar o horário como ele aparece na tela.
+export function paraInputDataHora(instante: string | null): string {
+  if (!instante) return '';
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    hourCycle: 'h23', timeZone: FUSO_OPERACAO,
+  }).formatToParts(new Date(instante));
+  const p = (tipo: string) => partes.find((x) => x.type === tipo)?.value ?? '';
+  return `${p('year')}-${p('month')}-${p('day')}T${p('hour')}:${p('minute')}`;
+}
+
 export function formatarDataHora(instante: string): string {
   return new Date(instante).toLocaleString('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: FUSO_OPERACAO,

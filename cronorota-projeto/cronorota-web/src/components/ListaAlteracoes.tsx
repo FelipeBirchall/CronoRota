@@ -41,6 +41,13 @@ export function ListaAlteracoes({ alteracoes }: { alteracoes: Alteracao[] }) {
               <span className="text-grafite">{autor(a)}</span>
               <span className="text-xs text-grafite/70 num ml-auto">revisão {a.revisao}</span>
             </div>
+            {/* UC07-A3: o motivo do ajuste manual */}
+            {a.justificativa && (
+              <p className="mt-1.5 text-sm">
+                <span className="text-grafite">Justificativa: </span>
+                <span className="italic">“{a.justificativa}”</span>
+              </p>
+            )}
             {a.campos.length > 0 && (
               <table className="mt-2 text-sm w-full max-w-2xl">
                 <tbody>

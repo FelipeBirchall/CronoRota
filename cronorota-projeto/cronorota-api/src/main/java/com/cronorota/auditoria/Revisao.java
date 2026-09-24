@@ -52,6 +52,11 @@ public class Revisao {
     @Column(nullable = false, length = 20)
     private String perfil;
 
+    // Motivo informado pelo usuário, quando a operação exige um (UC07-A3:
+    // ajuste manual de horário). Preenchido via JustificativaAuditoria.
+    @Column(length = 500)
+    private String justificativa;
+
     public Instant getInstante() {
         return Instant.ofEpochMilli(instanteMs);
     }

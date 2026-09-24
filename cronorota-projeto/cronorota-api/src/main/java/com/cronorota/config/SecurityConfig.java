@@ -84,6 +84,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/motoristas/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
                 .requestMatchers("/api/pedidos/**", "/api/enderecos/**").hasAuthority("ROLE_GERENTE")
                 .requestMatchers(HttpMethod.GET, "/api/roteiros/meus").hasAuthority("ROLE_MOTORISTA")
+                // UC07-A3: o motorista registra, mas quem corrige um horário é o gerente.
+                .requestMatchers(HttpMethod.PUT, "/api/pontos/*/horarios").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
                 // UC10: o dashboard é do gerente (e do administrador, que vê tudo).
                 // O histórico (UC09) fica aberto aos três perfis, filtrado no service.
                 .requestMatchers("/api/dashboard/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
