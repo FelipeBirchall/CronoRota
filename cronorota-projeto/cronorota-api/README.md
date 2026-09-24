@@ -40,7 +40,8 @@ Testes unitários (JUnit 5 + Mockito, sem banco) das regras de cálculo e de
 montagem/registro: `TempoParadoService` e `CustoService` usam os exemplos da
 seção 14 do documento (roteiros A, B e C; R$ 24,00 de custo), e os demais
 cobrem RN05, RN12, RN13, RN14, os fluxos de exceção do UC07 e a agregação
-do histórico e do dashboard (`AgregacaoTest`, também com os roteiros A/B/C).
+do histórico e do dashboard (`AgregacaoTest`, também com os roteiros A/B/C)
+e a exportação (`RelatorioTest` lê o CSV e o texto do PDF gerados).
 
 ## O que este código cobre (e o que não cobre ainda)
 
@@ -66,11 +67,19 @@ do histórico e do dashboard (`AgregacaoTest`, também com os roteiros A/B/C).
   estimado), totais por dia, por mês e por roteiro, ranking de endereços e
   comparação entre motoristas - tudo calculado a partir do mesmo conjunto
   de roteiros, carregado numa consulta só
+- UC14 (`GET /api/historico/exportar?inicio=&fim=&motoristaId=&formato=csv|pdf&maiorTempo=`):
+  o mesmo conteúdo do histórico (e na mesma ordenação da tela) como arquivo,
+  com período, filtro e data/hora de geração no cabeçalho. CSV pronto para o
+  Excel em português (";", vírgula decimal, UTF-8 com BOM, proteção contra
+  fórmula) e PDF em A4 paisagem (OpenPDF). Acima de 5.000 paradas pede para
+  reduzir o período (E1). Horários sempre em America/Sao_Paulo
 
 **Não implementado nesta etapa** (próximos incrementos):
 - RN08 (bloqueio após 3 tentativas de login) e recuperação de senha
-- UC14 (exportação de relatório) e cache do dashboard em Redis (RNF03 -
-  por ora a agregação em memória responde em milissegundos no volume do piloto)
+- Cache do dashboard em Redis (RNF03 - por ora a agregação em memória
+  responde em milissegundos no volume do piloto)
+- UC14-A1/A2 (exportar os gráficos do dashboard em PDF; enviar por e-mail).
+  O registro da exportação (UC14 passo 5) vai para o log até a auditoria existir
 - UC07-E2 (alerta de chegada fora da sequência) e A3 (ajuste manual com justificativa)
 - Geocodificação e coordenadas obrigatórias (RN11)
 - Auditoria (RNF05, a entidade `RegistroAuditoria` do documento) - ficaria

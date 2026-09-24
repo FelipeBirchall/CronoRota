@@ -84,6 +84,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- OpenPDF: gera o relatório do período em PDF (UC14, seção 25.1 do
+             documento). O CSV não precisa de biblioteca - é texto. -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
         <!-- Lombok: gera getters/setters/construtores por anotação, reduz código repetitivo -->
         <dependency>
             <groupId>org.projectlombok</groupId>

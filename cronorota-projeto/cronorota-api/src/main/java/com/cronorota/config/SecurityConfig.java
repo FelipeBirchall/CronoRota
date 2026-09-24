@@ -112,6 +112,9 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        // Sem isto o navegador esconde do JavaScript o nome do arquivo que a
+        // exportação (UC14) manda no Content-Disposition.
+        config.setExposedHeaders(List.of("Content-Disposition"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);

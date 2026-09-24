@@ -19,6 +19,24 @@ function ConteudoHistorico({ linkRoteiro }: { linkRoteiro: (id: number) => strin
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('cronologica');
+  const [exportando, setExportando] = useState<'csv' | 'pdf' | null>(null);
+  const [erroExportacao, setErroExportacao] = useState<string | null>(null);
+
+  // UC14: exporta o mesmo recorte e a mesma ordenação que estão na tela.
+  // Se falhar (E1 volume, E2 geração), a consulta continua em tela e só
+  // aparece a mensagem.
+  async function exportar(formato: 'csv' | 'pdf') {
+    setErroExportacao(null);
+    setExportando(formato);
+    try {
+      const query = `${queryDoPeriodo(periodo)}&formato=${formato}&maiorTempo=${ordenacao === 'maiorTempo'}`;
+      await api.baixar(`/historico/exportar?${query}`, `cronorota-historico.${formato}`);
+    } catch (e) {
+      setErroExportacao(e instanceof Error ? e.message : 'Erro ao exportar');
+    } finally {
+      setExportando(null);
+    }
+  }
 
   useEffect(() => {
     setErro(null);
@@ -54,17 +72,37 @@ function ConteudoHistorico({ linkRoteiro }: { linkRoteiro: (id: number) => strin
           </div>
 
           <Card className="!p-0">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-100">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-neutral-100">
               <h2 className="text-sm font-medium text-grafite">Paradas no período</h2>
-              <label className="text-xs text-grafite flex items-center gap-2">
-                Ordenar
-                <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value as Ordenacao)}
-                  className="rounded-md border border-neutral-300 px-2 py-1 text-xs bg-white">
-                  <option value="cronologica">Por data</option>
-                  <option value="maiorTempo">Maior tempo parado</option>
-                </select>
-              </label>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-xs text-grafite flex items-center gap-2">
+                  Ordenar
+                  <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value as Ordenacao)}
+                    className="rounded-md border border-neutral-300 px-2 py-1 text-xs bg-white">
+                    <option value="cronologica">Por data</option>
+                    <option value="maiorTempo">Maior tempo parado</option>
+                  </select>
+                </label>
+                {/* UC09-A1 / UC14: exportar o que está em tela */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-grafite">Exportar</span>
+                  {(['csv', 'pdf'] as const).map((formato) => (
+                    <button
+                      key={formato}
+                      type="button"
+                      onClick={() => exportar(formato)}
+                      disabled={exportando !== null || linhas.length === 0}
+                      className="px-2.5 py-1 rounded-md border border-petroleo text-xs font-medium text-petroleo hover:bg-petroleo/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {exportando === formato ? 'Gerando...' : formato.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
+            {erroExportacao && (
+              <p className="px-5 py-2 text-sm text-terracota border-b border-neutral-100">{erroExportacao}</p>
+            )}
 
             {linhas.length === 0 ? (
               // UC09-E2

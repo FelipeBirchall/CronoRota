@@ -13,7 +13,8 @@ function tokenAtual(): string | null {
   }
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+// Parte comum a JSON e download: cabeçalhos, token e tratamento de erro.
+async function enviar(path: string, options?: RequestInit): Promise<Response> {
   const token = tokenAtual();
 
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -32,9 +33,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     // Token ausente/expirado/inválido - desloga localmente e manda pro
     // login. Só no 401: o 403 significa "sessão válida, mas este recurso
     // não é seu" (RN13) e cai no tratamento de erro normal abaixo, sem
-    // derrubar a sessão. Não usamos o AuthContext aqui (este arquivo não é um
-    // componente React), então a forma simples é limpar o storage direto
-    // e redirecionar via location.
+    // derrubar a sessão.
     localStorage.removeItem(CHAVE_STORAGE);
     if (window.location.pathname !== '/login') {
       window.location.href = '/login';
@@ -42,17 +41,40 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    const erro: ErroApi = await response.json().catch(() => ({
-      timestamp: new Date().toISOString(),
-      status: response.status,
-      mensagem: response.status === 403 ? 'Você não tem permissão para esta operação' : 'Erro inesperado na API',
-    }));
-    throw new Error(erro.mensagem);
+    const erro: Partial<ErroApi> = await response.json().catch(() => ({}));
+    throw new Error(
+      erro.mensagem ?? (response.status === 403 ? 'Você não tem permissão para esta operação' : 'Erro inesperado na API')
+    );
   }
 
-  if (response.status === 204) return undefined as T;
+  return response;
+}
 
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await enviar(path, options);
+  if (response.status === 204) return undefined as T;
   return response.json();
+}
+
+// Download de arquivo (UC14). Não dá para usar um <a href> simples porque
+// a API exige o token no cabeçalho; então baixamos o arquivo com fetch e
+// entregamos ao navegador por um link temporário. O nome vem do
+// Content-Disposition que o back-end manda.
+async function baixar(path: string, nomePadrao: string): Promise<void> {
+  const response = await enviar(path);
+  const disposicao = response.headers.get('Content-Disposition') ?? '';
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposicao);
+  const simples = /filename="?([^";]+)"?/i.exec(disposicao);
+  const nome = utf8 ? decodeURIComponent(utf8[1]) : simples ? simples[1] : nomePadrao;
+
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nome;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export const api = {
@@ -61,4 +83,5 @@ export const api = {
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  baixar,
 };

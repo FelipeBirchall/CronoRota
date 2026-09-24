@@ -1,9 +1,12 @@
 package com.cronorota.exception;
 
 import com.cronorota.dto.response.ErroResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * é escrito uma vez só e vale pra toda a API (@RestControllerAdvice aplica
  * a TODOS os @RestController do projeto).
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -60,6 +64,30 @@ public class GlobalExceptionHandler {
                 : ((MethodArgumentTypeMismatchException) ex).getName();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErroResponse.of(400, "Parâmetro ausente ou inválido: " + nome));
+    }
+
+    // JSON malformado ou com tipo errado no corpo (ex.: data em formato inválido).
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErroResponse> handleCorpoInvalido(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErroResponse.of(400, "Corpo da requisição inválido"));
+    }
+
+    /**
+     * Qualquer outra falha (ex.: UC14-E2, erro ao gerar o PDF): registra o
+     * stack trace no log e devolve uma mensagem genérica no formato padrão -
+     * sem expor detalhe interno ao cliente. Exceções do próprio Spring que já
+     * carregam o status certo (405, 404 de rota etc.) passam com esse status.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErroResponse> handleInesperado(Exception ex) {
+        if (ex instanceof ErrorResponse erroSpring) {
+            int status = erroSpring.getStatusCode().value();
+            return ResponseEntity.status(status).body(ErroResponse.of(status, erroSpring.getBody().getTitle()));
+        }
+        log.error("Erro não tratado", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErroResponse.of(500, "Erro interno ao processar a requisição. Tente novamente."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

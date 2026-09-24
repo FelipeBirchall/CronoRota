@@ -58,9 +58,14 @@ export function formatarMes(chave: string): string {
   return `${MESES[Number(mes) - 1]}/${ano}`;
 }
 
+// Horários sempre no fuso da operação (seção 24.2 do documento), não no
+// fuso do aparelho - é o mesmo que o back-end usa nos relatórios (UC14),
+// então tela e arquivo exportado nunca divergem.
+export const FUSO_OPERACAO = 'America/Sao_Paulo';
+
 export function formatarHora(instante: string | null): string {
   if (!instante) return '—';
-  return new Date(instante).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return new Date(instante).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: FUSO_OPERACAO });
 }
 
 // 161 -> "2h 41min"; 45 -> "45min"
