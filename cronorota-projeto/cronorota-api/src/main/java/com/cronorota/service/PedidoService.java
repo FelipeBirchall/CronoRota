@@ -1,6 +1,7 @@
 package com.cronorota.service;
 
 import com.cronorota.exception.RecursoNaoEncontradoException;
+import com.cronorota.exception.RegraDeNegocioException;
 import com.cronorota.model.Endereco;
 import com.cronorota.model.Pedido;
 import com.cronorota.model.SituacaoPedido;
@@ -21,6 +22,10 @@ public class PedidoService {
 
     public Pedido cadastrar(String codigo, String destinatario, Long enderecoId,
                              LocalDate dataPrevista, String janelaEntrega) {
+        // UC05-E1: código de pedido duplicado.
+        if (pedidoRepository.existsByCodigo(codigo)) {
+            throw new RegraDeNegocioException("Já existe um pedido com o código " + codigo);
+        }
         Endereco endereco = enderecoRepository.findById(enderecoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Endereço não encontrado: " + enderecoId));
 
@@ -35,7 +40,11 @@ public class PedidoService {
 
     // Usado pela tela de montagem de roteiro (UC06): só pedidos pendentes
     // e ainda não associados a um ponto entram na lista de seleção.
-    public List<Pedido> listarPendentes() {
-        return pedidoRepository.findBySituacaoAndPonto_IsNull(SituacaoPedido.PENDENTE);
+    // Com data informada, lista só os pedidos daquela data (RN12) - é o que
+    // a montagem de roteiro usa, já que o roteiro é de um dia só.
+    public List<Pedido> listarPendentes(LocalDate data) {
+        return data == null
+                ? pedidoRepository.findBySituacaoAndPonto_IsNull(SituacaoPedido.PENDENTE)
+                : pedidoRepository.findBySituacaoAndPonto_IsNullAndDataPrevista(SituacaoPedido.PENDENTE, data);
     }
 }

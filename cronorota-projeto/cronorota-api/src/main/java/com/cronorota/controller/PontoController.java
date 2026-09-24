@@ -6,6 +6,8 @@ import com.cronorota.model.Ponto;
 import com.cronorota.service.RegistroPontoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.cronorota.security.UsuarioAutenticado;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,15 +26,17 @@ public class PontoController {
 
     @PostMapping("/{id}/chegada")
     public ResponseEntity<PontoResponse> registrarChegada(@PathVariable Long id,
-                                                            @Valid @RequestBody RegistrarPontoRequest request) {
-        Ponto ponto = registroPontoService.registrarChegada(id, request.dataHora());
+                                                            @Valid @RequestBody RegistrarPontoRequest request,
+                                                            @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Ponto ponto = registroPontoService.registrarChegada(id, request.dataHora(), usuario);
         return ResponseEntity.ok(PontoResponse.fromEntity(ponto));
     }
 
     @PostMapping("/{id}/saida")
     public ResponseEntity<PontoResponse> registrarSaida(@PathVariable Long id,
-                                                          @Valid @RequestBody RegistrarPontoRequest request) {
-        Ponto ponto = registroPontoService.registrarSaida(id, request.dataHora());
+                                                          @Valid @RequestBody RegistrarPontoRequest request,
+                                                          @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Ponto ponto = registroPontoService.registrarSaida(id, request.dataHora(), usuario);
         return ResponseEntity.ok(PontoResponse.fromEntity(ponto));
     }
 }

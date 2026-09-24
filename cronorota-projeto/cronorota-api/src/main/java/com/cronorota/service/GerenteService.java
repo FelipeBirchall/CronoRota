@@ -1,7 +1,6 @@
 package com.cronorota.service;
 
 import com.cronorota.exception.RecursoNaoEncontradoException;
-import com.cronorota.exception.RegraDeNegocioException;
 import com.cronorota.model.Gerente;
 import com.cronorota.repository.GerenteRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +18,11 @@ public class GerenteService {
 
     private final GerenteRepository gerenteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ValidacaoUsuarioService validacaoUsuarioService;
 
     @Transactional
     public Gerente cadastrar(String nome, String telefone, String email, String login, String senha) {
-        if (gerenteRepository.findAll().stream().anyMatch(g -> g.getLogin().equals(login))) {
-            throw new RegraDeNegocioException("Login já cadastrado");
-        }
+        validacaoUsuarioService.validarLoginEEmailDisponiveis(login, email);
         Gerente gerente = Gerente.builder()
                 .nome(nome).telefone(telefone).email(email)
                 .login(login).senhaHash(passwordEncoder.encode(senha))

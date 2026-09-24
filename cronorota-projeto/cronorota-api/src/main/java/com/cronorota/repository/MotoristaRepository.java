@@ -2,6 +2,7 @@ package com.cronorota.repository;
 
 import com.cronorota.model.Motorista;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 import java.util.Optional;
 
 // JpaRepository já entrega save, findById, findAll, delete, etc. prontos.
@@ -14,4 +15,7 @@ public interface MotoristaRepository extends JpaRepository<Motorista, Long> {
     boolean existsByDocumento(String documento);
 
     boolean existsByLogin(String login);
+
+    // RN13: o gerente enxerga só os motoristas da própria equipe.
+    List<Motorista> findByGerente_Id(Long gerenteId);
 }

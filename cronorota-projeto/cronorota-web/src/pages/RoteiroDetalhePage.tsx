@@ -3,13 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { Roteiro } from '../types';
 import { Card } from '../components/ui';
+import { formatarHora, formatarMinutos } from '../utils/data';
 
-function formatarMinutos(min: number | null): string {
-  if (min === null) return '—';
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return h > 0 ? `${h}h ${m}min` : `${m}min`;
-}
 
 export function RoteiroDetalhePage() {
   const { id } = useParams();
@@ -81,8 +76,8 @@ export function RoteiroDetalhePage() {
               <tr key={p.id} className="border-t border-neutral-100">
                 <td className="py-2.5 num text-grafite">{p.ordem}</td>
                 <td className="py-2.5">{p.endereco}</td>
-                <td className="py-2.5 num text-grafite">{p.dataHoraChegada ? new Date(p.dataHoraChegada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                <td className="py-2.5 num text-grafite">{p.dataHoraSaida ? new Date(p.dataHoraSaida).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                <td className="py-2.5 num text-grafite">{formatarHora(p.dataHoraChegada)}</td>
+                <td className="py-2.5 num text-grafite">{formatarHora(p.dataHoraSaida)}</td>
                 <td className="py-2.5 num font-medium">
                   {p.ordem === 1 ? <span className="text-grafite font-normal">partida</span> : formatarMinutos(p.tempoParadoMinutos)}
                 </td>

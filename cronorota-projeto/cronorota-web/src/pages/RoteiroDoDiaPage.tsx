@@ -47,6 +47,8 @@ export function RoteiroDoDiaPage() {
     }
   }
 
+  const proximoPendenteId = roteiro?.pontos.find((p) => !p.dataHoraSaida)?.id;
+
   if (erro && !roteiro) {
     return <div className="min-h-screen bg-petroleo flex items-center justify-center p-6"><p className="text-white text-sm">{erro}</p></div>;
   }
@@ -97,12 +99,20 @@ export function RoteiroDoDiaPage() {
 
       <div className="p-4 space-y-3">
         {roteiro.pontos.map((ponto) => {
-          const emAtendimento = ponto.dataHoraChegada && !ponto.dataHoraSaida;
-          const concluido = ponto.dataHoraChegada && ponto.dataHoraSaida;
+          // UC07-A1: o ponto de partida só tem saída - o motorista já está
+          // lá quando o roteiro começa, então não existe "chegada" nele.
+          const partida = ponto.ordem === 1;
+          const emAtendimento = !partida && ponto.dataHoraChegada && !ponto.dataHoraSaida;
+          const concluido = !!ponto.dataHoraSaida;
           const carregando = carregandoPontoId === ponto.id;
+          // UC07 passo 2: destaca o próximo ponto pendente da sequência.
+          const proximo = ponto.id === proximoPendenteId;
 
           return (
-            <div key={ponto.id} className="bg-white rounded-xl border border-neutral-200 p-4">
+            <div
+              key={ponto.id}
+              className={`bg-white rounded-xl border p-4 ${proximo ? 'border-petroleo ring-1 ring-petroleo' : 'border-neutral-200'}`}
+            >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <p className="text-xs text-grafite mb-0.5">
@@ -112,7 +122,12 @@ export function RoteiroDoDiaPage() {
                 </div>
                 {concluido && (
                   <span className="shrink-0 text-xs font-medium bg-verdeok/10 text-verdeok px-2.5 py-1 rounded-full">
-                    concluído
+                    {partida ? 'saída registrada' : 'concluído'}
+                  </span>
+                )}
+                {proximo && !emAtendimento && (
+                  <span className="shrink-0 text-xs font-medium bg-petroleo/10 text-petroleo px-2.5 py-1 rounded-full">
+                    próximo
                   </span>
                 )}
                 {emAtendimento && (
@@ -122,13 +137,22 @@ export function RoteiroDoDiaPage() {
                 )}
               </div>
 
-              {concluido && ponto.ordem !== 1 && (
+              {concluido && !partida && (
                 <p className="text-sm text-grafite mb-3 num">
                   Tempo parado: <span className="font-semibold text-[#1a1a1a]">{ponto.tempoParadoMinutos} min</span>
                 </p>
               )}
 
-              {!ponto.dataHoraChegada && (
+              {partida && !concluido && (
+                <button
+                  onClick={() => registrar(ponto, 'saida')}
+                  disabled={carregando}
+                  className="w-full py-3.5 rounded-lg bg-petroleo text-white font-medium text-base disabled:opacity-50"
+                >
+                  {carregando ? 'Registrando...' : 'Registrar saída da partida'}
+                </button>
+              )}
+              {!partida && !ponto.dataHoraChegada && (
                 <button
                   onClick={() => registrar(ponto, 'chegada')}
                   disabled={carregando}

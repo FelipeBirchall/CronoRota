@@ -44,6 +44,17 @@ public class TempoParadoService {
     }
 
     /**
+     * Parada concluída que entra nas somas e no histórico: fora o ponto de
+     * partida (RN01) e com a saída já registrada (UC08-E2). Usado pelo
+     * histórico e pelo dashboard para que os dois contem as mesmas paradas.
+     */
+    public boolean contaComoParada(Ponto ponto) {
+        return ponto.getOrdem() != null && ponto.getOrdem() > 1
+                && ponto.getDataHoraSaida() != null
+                && ponto.getTempoParadoMinutos() != null;
+    }
+
+    /**
      * RN03: soma os tempos parados de todos os pontos do roteiro, exceto o
      * de partida. Pontos ainda "em atendimento" (tempoParadoMinutos nulo)
      * são ignorados na soma - eles entram quando a saída for registrada e o

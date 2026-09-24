@@ -1,10 +1,12 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 // Gerentes: Motoristas, Endereços, Pedidos, Montar roteiro. Gerentes e
 // Parâmetros (configuração) migraram pra /admin/*, fora do alcance deste
 // perfil (RN13) - é a separação que a tabela de perfis já previa.
 const links = [
+  { to: '/gerente/dashboard', label: 'Dashboard' },
+  { to: '/gerente/historico', label: 'Histórico' },
   { to: '/gerente/motoristas', label: 'Motoristas' },
   { to: '/gerente/enderecos', label: 'Endereços' },
   { to: '/gerente/pedidos', label: 'Pedidos' },
@@ -13,6 +15,10 @@ const links = [
 
 export function LayoutGerente() {
   const { sessao, logout } = useAuth();
+  // Dashboard e histórico precisam de largura para gráficos e tabelas; as
+  // telas de cadastro continuam estreitas, que é melhor para formulário.
+  const { pathname } = useLocation();
+  const largo = pathname.startsWith('/gerente/dashboard') || pathname.startsWith('/gerente/historico');
 
   return (
     <div className="min-h-screen flex">
@@ -39,7 +45,7 @@ export function LayoutGerente() {
           <button onClick={logout} className="text-xs text-white/80 hover:text-white">Sair</button>
         </div>
       </aside>
-      <main className="flex-1 p-8 max-w-3xl">
+      <main className={`flex-1 min-w-0 p-8 ${largo ? 'max-w-6xl' : 'max-w-3xl'}`}>
         <Outlet />
       </main>
     </div>
