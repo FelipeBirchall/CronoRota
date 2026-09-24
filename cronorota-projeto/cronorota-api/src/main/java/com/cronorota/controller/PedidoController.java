@@ -5,9 +5,11 @@ import com.cronorota.dto.response.PedidoResponse;
 import com.cronorota.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -25,7 +27,8 @@ public class PedidoController {
     }
 
     @GetMapping("/pendentes")
-    public List<PedidoResponse> listarPendentes() {
-        return pedidoService.listarPendentes().stream().map(PedidoResponse::fromEntity).toList();
+    public List<PedidoResponse> listarPendentes(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return pedidoService.listarPendentes(data).stream().map(PedidoResponse::fromEntity).toList();
     }
 }

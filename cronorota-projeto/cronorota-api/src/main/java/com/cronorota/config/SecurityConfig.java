@@ -4,12 +4,15 @@ import com.cronorota.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,6 +46,11 @@ public class SecurityConfig {
             // API stateless: cada requisição se autentica sozinha via token,
             // nenhuma sessão de servidor é criada ou consultada.
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Sem token (ou token expirado) = 401; token válido mas perfil sem
+            // permissão = 403. Sem esta linha o Spring devolve 403 nos dois
+            // casos, e o front-end não teria como distinguir "sessão expirou,
+            // faça login de novo" de "você não pode ver isto".
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 // Login sempre aberto - é a única forma de conseguir um token.
                 .requestMatchers("/api/auth/**").permitAll()
@@ -51,14 +59,22 @@ public class SecurityConfig {
                 .requestMatchers("/api/administradores").permitAll()
 
                 // RN13: só o Administrador cadastra gerente e mexe em parâmetros.
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/gerentes").hasAuthority("ROLE_ADMINISTRADOR")
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/parametros").hasAuthority("ROLE_ADMINISTRADOR")
+                .requestMatchers(HttpMethod.POST, "/api/gerentes").hasAuthority("ROLE_ADMINISTRADOR")
+                .requestMatchers(HttpMethod.POST, "/api/parametros").hasAuthority("ROLE_ADMINISTRADOR")
 
-                // Tudo o mais exige QUALQUER usuário autenticado (qualquer
-                // perfil). Uma separação mais fina por perfil em cada rota de
-                // motorista/gerente fica como próximo refinamento - hoje o
-                // controle mais visível de "quem vê o quê" está no front-end,
-                // que só mostra a navegação de cada perfil.
+                // Operação do gerente (UC02, UC04, UC05, UC06). Montar roteiro
+                // e cadastrar motorista usam o id do gerente logado, então só
+                // fazem sentido com perfil de gerente.
+                .requestMatchers(HttpMethod.POST, "/api/motoristas", "/api/enderecos", "/api/pedidos", "/api/roteiros")
+                    .hasAuthority("ROLE_GERENTE")
+                .requestMatchers("/api/motoristas/**").hasAnyAuthority("ROLE_GERENTE", "ROLE_ADMINISTRADOR")
+                .requestMatchers("/api/pedidos/**", "/api/enderecos/**").hasAuthority("ROLE_GERENTE")
+                .requestMatchers(HttpMethod.GET, "/api/roteiros/meus").hasAuthority("ROLE_MOTORISTA")
+
+                // O resto (consultar roteiro, registrar chegada/saída) vale
+                // para qualquer perfil autenticado - quem pode ver QUAL
+                // roteiro (RN13) é decidido no RoteiroService.verificarAcesso,
+                // porque depende do dono do registro, não só do perfil.
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

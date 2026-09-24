@@ -1,6 +1,5 @@
 package com.cronorota.service;
 
-import com.cronorota.exception.RegraDeNegocioException;
 import com.cronorota.model.Administrador;
 import com.cronorota.repository.AdministradorRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +16,11 @@ public class AdministradorService {
 
     private final AdministradorRepository administradorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ValidacaoUsuarioService validacaoUsuarioService;
 
     @Transactional
     public Administrador cadastrar(String nome, String telefone, String email, String login, String senha) {
-        if (administradorRepository.existsByLogin(login)) {
-            throw new RegraDeNegocioException("Login já cadastrado");
-        }
+        validacaoUsuarioService.validarLoginEEmailDisponiveis(login, email);
         Administrador administrador = Administrador.builder()
                 .nome(nome).telefone(telefone).email(email)
                 .login(login).senhaHash(passwordEncoder.encode(senha))

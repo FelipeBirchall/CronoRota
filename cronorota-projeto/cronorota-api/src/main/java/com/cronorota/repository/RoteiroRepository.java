@@ -18,4 +18,11 @@ public interface RoteiroRepository extends JpaRepository<Roteiro, Long> {
     // Usado pela tela "Meus roteiros" do motorista logado - sem filtro de
     // período, ordenado do mais recente pro mais antigo.
     List<Roteiro> findByMotorista_IdOrderByDataDesc(Long motoristaId);
+
+    // RN05: um motorista tem no máximo um roteiro (ativo) por data.
+    boolean existsByMotorista_IdAndDataAndAtivoTrue(Long motoristaId, LocalDate data);
+
+    // RN14 / UC08-A1: roteiros alcançados por um parâmetro que entra em
+    // vigência nesta data, e que por isso precisam ter os indicadores refeitos.
+    List<Roteiro> findByDataGreaterThanEqualAndAtivoTrue(LocalDate data);
 }

@@ -19,7 +19,7 @@ public record CadastrarMotoristaRequest(
         @NotBlank String habilitacao,
         @NotBlank String login,
         @NotBlank String senha,
-        @NotNull Long gerenteId,
+        // Sem gerenteId: o motorista entra na equipe do gerente logado (token).
 
         @NotBlank String placaVeiculo,
         @NotBlank String modeloVeiculo,

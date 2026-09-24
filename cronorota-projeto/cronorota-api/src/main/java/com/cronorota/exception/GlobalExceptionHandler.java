@@ -1,6 +1,7 @@
 package com.cronorota.exception;
 
 import com.cronorota.dto.response.ErroResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +21,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErroResponse.of(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErroResponse> handleAcessoNegado(AcessoNegadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErroResponse.of(403, ex.getMessage()));
+    }
+
+    // Rede de segurança para o que escapar das validações dos services
+    // (ex.: duas requisições simultâneas gravando o mesmo login, ou o
+    // índice único de RN05 no banco). Sem isto, o cliente receberia um 500
+    // genérico com stack trace no log e nenhuma mensagem útil.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErroResponse> handleIntegridade(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.of(409, "O registro conflita com dados já cadastrados"));
     }
 
     @ExceptionHandler(RegraDeNegocioException.class)

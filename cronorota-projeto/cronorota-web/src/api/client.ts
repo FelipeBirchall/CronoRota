@@ -28,9 +28,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     // Token ausente/expirado/inválido - desloga localmente e manda pro
-    // login. Não usamos o AuthContext aqui (este arquivo não é um
+    // login. Só no 401: o 403 significa "sessão válida, mas este recurso
+    // não é seu" (RN13) e cai no tratamento de erro normal abaixo, sem
+    // derrubar a sessão. Não usamos o AuthContext aqui (este arquivo não é um
     // componente React), então a forma simples é limpar o storage direto
     // e redirecionar via location.
     localStorage.removeItem(CHAVE_STORAGE);
@@ -43,7 +45,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const erro: ErroApi = await response.json().catch(() => ({
       timestamp: new Date().toISOString(),
       status: response.status,
-      mensagem: 'Erro inesperado na API',
+      mensagem: response.status === 403 ? 'Você não tem permissão para esta operação' : 'Erro inesperado na API',
     }));
     throw new Error(erro.mensagem);
   }

@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import type { Gerente, Motorista } from '../types';
+import type { Motorista } from '../types';
 import { Alert, Button, Card, Field, Input, Select } from '../components/ui';
 
 const vazio = {
   nome: '', telefone: '', email: '', documento: '', habilitacao: '',
-  login: '', senha: '', gerenteId: '', placaVeiculo: '', modeloVeiculo: '',
+  login: '', senha: '', placaVeiculo: '', modeloVeiculo: '',
   tipoVeiculo: 'moto', rendimentoKmLitro: '',
 };
 
 export function CadastroMotoristaPage() {
   const [motoristas, setMotoristas] = useState<Motorista[]>([]);
-  const [gerentes, setGerentes] = useState<Gerente[]>([]);
   const [form, setForm] = useState(vazio);
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
 
   function carregar() {
     api.get<Motorista[]>('/motoristas').then(setMotoristas).catch(() => {});
-    api.get<Gerente[]>('/gerentes').then(setGerentes).catch(() => {});
   }
 
   useEffect(carregar, []);
@@ -30,7 +28,6 @@ export function CadastroMotoristaPage() {
     try {
       await api.post('/motoristas', {
         ...form,
-        gerenteId: Number(form.gerenteId),
         rendimentoKmLitro: Number(form.rendimentoKmLitro),
       });
       setForm(vazio);
@@ -42,21 +39,14 @@ export function CadastroMotoristaPage() {
     }
   }
 
-  if (gerentes.length === 0) {
-    return (
-      <Card>
-        <p className="text-sm text-grafite">
-          Cadastre um gerente primeiro na aba "Gerentes" - todo motorista precisa de um.
-        </p>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Motoristas</h1>
-        <p className="text-sm text-grafite mt-1">Cadastro de motorista/motoboy e veículo (RN10: rendimento km/litro maior que zero).</p>
+        <p className="text-sm text-grafite mt-1">
+          Cadastro de motorista/motoboy e veículo (RN10: rendimento km/litro maior que zero).
+          O motorista entra na sua equipe.
+        </p>
       </div>
 
       <Card>
@@ -68,12 +58,6 @@ export function CadastroMotoristaPage() {
             <Field label="E-mail"><Input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
             <Field label="Documento (CPF)"><Input required value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} /></Field>
             <Field label="Habilitação"><Input required value={form.habilitacao} onChange={(e) => setForm({ ...form, habilitacao: e.target.value })} /></Field>
-            <Field label="Gerente responsável">
-              <Select required value={form.gerenteId} onChange={(e) => setForm({ ...form, gerenteId: e.target.value })}>
-                <option value="">Selecione...</option>
-                {gerentes.map((g) => <option key={g.id} value={g.id}>{g.nome}</option>)}
-              </Select>
-            </Field>
             <Field label="Login"><Input required value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} /></Field>
             <Field label="Senha"><Input required type="password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} /></Field>
           </div>
@@ -101,7 +85,7 @@ export function CadastroMotoristaPage() {
       </Card>
 
       <Card>
-        <h2 className="text-sm font-medium text-grafite mb-3">Motoristas cadastrados</h2>
+        <h2 className="text-sm font-medium text-grafite mb-3">Motoristas da sua equipe</h2>
         <table className="w-full text-sm">
           <tbody>
             {motoristas.map((m) => (

@@ -11,7 +11,9 @@ import java.util.List;
 
 public record MontarRoteiroRequest(
         @NotNull Long motoristaId,
-        @NotNull Long gerenteId,
+        // Sem gerenteId: o gerente planejador é quem está logado (vem do
+        // token) - aceitar pelo corpo deixaria um gerente montar roteiro
+        // "em nome" de outro.
         @NotNull @FutureOrPresent LocalDate data,
 
         // Sem isso, o custo estimado (UC13/RN07) nunca teria como ser

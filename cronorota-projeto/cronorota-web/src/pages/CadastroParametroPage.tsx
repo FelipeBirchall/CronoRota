@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import type { Parametro } from '../types';
 import { Alert, Button, Card, Field, Input } from '../components/ui';
+import { hojeLocal } from '../utils/data';
 
-const vazio = { valorCombustivel: '', jornadaPadraoMinutos: '480', dataInicioVigencia: new Date().toISOString().slice(0, 10) };
+const vazio = { valorCombustivel: '', jornadaPadraoMinutos: '480', dataInicioVigencia: hojeLocal() };
 
 // Sem um parâmetro vigente cadastrado, o custo estimado do roteiro nunca é
 // calculado (o service de custo depende de um Parametro vigente na data do

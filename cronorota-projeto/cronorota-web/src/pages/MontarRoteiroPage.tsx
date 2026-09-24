@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import type { Gerente, Motorista, Pedido, Roteiro } from '../types';
+import type { Motorista, Pedido, Roteiro } from '../types';
 import { Alert, Button, Card, Field, Input, Select } from '../components/ui';
+import { hojeLocal } from '../utils/data';
 
 // A ordem em que o gerente marca os pedidos abaixo VIRA a ordem dos pontos
 // no roteiro (RN06) - o primeiro marcado é o ponto de partida (RN01) e não
@@ -11,21 +12,27 @@ import { Alert, Button, Card, Field, Input, Select } from '../components/ui';
 export function MontarRoteiroPage() {
   const navigate = useNavigate();
   const [motoristas, setMotoristas] = useState<Motorista[]>([]);
-  const [gerentes, setGerentes] = useState<Gerente[]>([]);
   const [pedidosPendentes, setPedidosPendentes] = useState<Pedido[]>([]);
   const [motoristaId, setMotoristaId] = useState('');
-  const [gerenteId, setGerenteId] = useState('');
-  const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
+  const [data, setData] = useState(hojeLocal);
   const [distanciaTotalKm, setDistanciaTotalKm] = useState('');
   const [ordemSelecionada, setOrdemSelecionada] = useState<number[]>([]); // pedido ids, na ordem de clique
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
 
+  // Só motoristas ativos da equipe do gerente logado podem receber roteiro -
+  // o back-end já devolve só a equipe (RN13); o filtro de ativo é daqui.
   useEffect(() => {
-    api.get<Motorista[]>('/motoristas').then(setMotoristas).catch(() => {});
-    api.get<Gerente[]>('/gerentes').then(setGerentes).catch(() => {});
-    api.get<Pedido[]>('/pedidos/pendentes').then(setPedidosPendentes).catch(() => {});
+    api.get<Motorista[]>('/motoristas').then((lista) => setMotoristas(lista.filter((m) => m.ativo))).catch(() => {});
   }, []);
+
+  // RN12: só entram pedidos previstos para a data do roteiro. Trocar a
+  // data recarrega a lista e descarta a seleção anterior, que era de outro dia.
+  useEffect(() => {
+    setOrdemSelecionada([]);
+    if (!data) return;
+    api.get<Pedido[]>(`/pedidos/pendentes?data=${data}`).then(setPedidosPendentes).catch(() => {});
+  }, [data]);
 
   function alternarPedido(id: number) {
     setOrdemSelecionada((atual) =>
@@ -44,7 +51,6 @@ export function MontarRoteiroPage() {
     try {
       const roteiro = await api.post<Roteiro>('/roteiros', {
         motoristaId: Number(motoristaId),
-        gerenteId: Number(gerenteId),
         data,
         pedidoIds: ordemSelecionada,
         distanciaTotalKm: Number(distanciaTotalKm),
@@ -57,8 +63,8 @@ export function MontarRoteiroPage() {
     }
   }
 
-  if (motoristas.length === 0 || gerentes.length === 0) {
-    return <Card><p className="text-sm text-grafite">Cadastre ao menos um gerente e um motorista antes de montar um roteiro.</p></Card>;
+  if (motoristas.length === 0) {
+    return <Card><p className="text-sm text-grafite">Cadastre ao menos um motorista na sua equipe antes de montar um roteiro.</p></Card>;
   }
 
   return (
@@ -67,7 +73,7 @@ export function MontarRoteiroPage() {
         <h1 className="text-xl font-semibold">Montar roteiro</h1>
         <p className="text-sm text-grafite mt-1">
           Clique nos pedidos na ordem do trajeto. O primeiro clicado é o ponto de partida
-          (não acumula tempo parado - RN01).
+          (não acumula tempo parado - RN01). Pedidos no mesmo endereço viram um ponto só.
         </p>
       </div>
 
@@ -82,12 +88,6 @@ export function MontarRoteiroPage() {
                 {motoristas.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </Select>
             </Field>
-            <Field label="Gerente responsável">
-              <Select required value={gerenteId} onChange={(e) => setGerenteId(e.target.value)}>
-                <option value="">Selecione...</option>
-                {gerentes.map((g) => <option key={g.id} value={g.id}>{g.nome}</option>)}
-              </Select>
-            </Field>
             <Field label="Data">
               <Input required type="date" value={data} onChange={(e) => setData(e.target.value)} />
             </Field>
@@ -98,9 +98,11 @@ export function MontarRoteiroPage() {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-grafite mb-2">Pedidos pendentes</p>
+            <p className="text-sm font-medium text-grafite mb-2">Pedidos pendentes para esta data</p>
             {pedidosPendentes.length === 0 && (
-              <p className="text-sm text-grafite">Nenhum pedido pendente - cadastre pedidos na aba "Pedidos".</p>
+              <p className="text-sm text-grafite">
+                Nenhum pedido pendente previsto para esta data - cadastre pedidos na aba "Pedidos".
+              </p>
             )}
             <div className="space-y-2">
               {pedidosPendentes.map((p) => {

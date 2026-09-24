@@ -9,6 +9,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -69,6 +70,10 @@ public abstract class Usuario {
     // RN09: registros vinculados a roteiros já executados não podem ser excluídos,
     // apenas inativados. Por isso não existe DELETE de usuário em nenhum service -
     // só update deste campo.
+    // @Builder.Default: sem isso o @SuperBuilder ignora o "= true" e todo
+    // usuário criado pelo builder nasceria inativo se o service esquecesse
+    // de chamar .ativo(true).
     @Column(nullable = false)
+    @Builder.Default
     private boolean ativo = true;
 }

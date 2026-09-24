@@ -14,7 +14,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,9 +30,14 @@ import java.util.List;
  * somar tudo toda vez que exibe o histórico ou o dashboard (RNF03: resposta
  * em menos de 3 segundos).
  */
+// @Getter/@Setter em vez de @Data: Roteiro -> pontos -> Ponto.roteiro é uma
+// referência circular, e o equals/hashCode/toString gerados pelo @Data
+// entrariam em recursão infinita (StackOverflowError) ao percorrê-la. O mesmo
+// vale para Ponto e Pedido. Entidade JPA fica com a igualdade por identidade.
 @Entity
 @Table(name = "roteiro")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

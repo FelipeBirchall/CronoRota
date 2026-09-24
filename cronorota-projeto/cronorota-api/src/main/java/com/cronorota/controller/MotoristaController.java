@@ -6,6 +6,8 @@ import com.cronorota.model.Motorista;
 import com.cronorota.service.MotoristaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.cronorota.security.UsuarioAutenticado;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,11 +39,12 @@ public class MotoristaController {
     private final MotoristaService motoristaService;
 
     @PostMapping
-    public ResponseEntity<MotoristaResponse> cadastrar(@Valid @RequestBody CadastrarMotoristaRequest request) {
+    public ResponseEntity<MotoristaResponse> cadastrar(@Valid @RequestBody CadastrarMotoristaRequest request,
+                                                       @AuthenticationPrincipal UsuarioAutenticado usuario) {
         Motorista motorista = motoristaService.cadastrar(
                 request.nome(), request.telefone(), request.email(),
                 request.documento(), request.habilitacao(),
-                request.login(), request.senha(), request.gerenteId(),
+                request.login(), request.senha(), usuario.id(),
                 request.placaVeiculo(), request.modeloVeiculo(), request.tipoVeiculo(),
                 request.rendimentoKmLitro()
         );
@@ -49,20 +52,22 @@ public class MotoristaController {
     }
 
     @GetMapping
-    public List<MotoristaResponse> listar() {
-        return motoristaService.listarTodos().stream().map(MotoristaResponse::fromEntity).toList();
+    public List<MotoristaResponse> listar(@AuthenticationPrincipal UsuarioAutenticado usuario) {
+        return motoristaService.listar(usuario).stream().map(MotoristaResponse::fromEntity).toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MotoristaResponse> buscarPorId(@PathVariable Long id) {
-        Motorista motorista = motoristaService.buscarPorId(id);
+    public ResponseEntity<MotoristaResponse> buscarPorId(@PathVariable Long id,
+                                                         @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        Motorista motorista = motoristaService.buscarPorId(id, usuario);
         return ResponseEntity.ok(MotoristaResponse.fromEntity(motorista));
     }
 
     // PUT, não DELETE: RN09 - inativação, não exclusão.
     @PutMapping("/{id}/inativar")
-    public ResponseEntity<Void> inativar(@PathVariable Long id) {
-        motoristaService.inativar(id);
+    public ResponseEntity<Void> inativar(@PathVariable Long id,
+                                         @AuthenticationPrincipal UsuarioAutenticado usuario) {
+        motoristaService.inativar(id, usuario);
         return ResponseEntity.noContent().build();
     }
 }

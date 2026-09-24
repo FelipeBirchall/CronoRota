@@ -24,4 +24,12 @@ public interface ParametroRepository extends JpaRepository<Parametro, Long> {
             AND (p.dataFimVigencia IS NULL OR p.dataFimVigencia >= :data)
             """)
     Optional<Parametro> buscarVigenteEm(@Param("data") LocalDate data);
+
+    // O parâmetro "em aberto" (sem fim de vigência) - no máximo um, já que o
+    // ParametroService encerra o anterior sempre que grava um novo (RN14).
+    Optional<Parametro> findByDataFimVigenciaIsNull();
+
+    // RN14 / UC11-E2: já existe parâmetro começando nesta data ou depois?
+    // Se sim, a nova vigência se sobreporia a ele.
+    boolean existsByDataInicioVigenciaGreaterThanEqual(LocalDate data);
 }
